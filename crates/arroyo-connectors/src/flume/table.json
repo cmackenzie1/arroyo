@@ -1,0 +1,50 @@
+{
+    "type": "object",
+    "title": "FlumeTable",
+    "properties": {
+        "endpoint": {
+            "title": "Endpoint",
+            "type": "string",
+            "description": "The Flume endpoint to connect to; leave blank to use default"
+        },
+        "topic": {
+            "title": "Topic",
+            "type": "string",
+            "description": "The Flume topic to use for this table"
+        },
+        "type": {
+            "type": "object",
+            "title": "Table Type",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "title": "Source",
+                    "properties": {
+                        "offset": {
+                            "type": "string",
+                            "description": "The offset to start reading from",
+                            "enum": [
+                                "earliest",
+                                "latest"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "offset"
+                    ],
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "title": "Sink",
+                    "properties": {},
+                    "additionalProperties": false
+                }
+            ]
+        }
+    },
+    "required": [
+        "topic",
+        "type"
+    ]
+}

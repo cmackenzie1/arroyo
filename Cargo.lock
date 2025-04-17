@@ -539,6 +539,7 @@ dependencies = [
  "aws-config",
  "aws-msk-iam-sasl-signer",
  "aws-sdk-kinesis",
+ "base64 0.22.1",
  "bincode",
  "bytes",
  "chrono",
