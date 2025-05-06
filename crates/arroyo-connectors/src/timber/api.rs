@@ -24,7 +24,7 @@ pub struct PartitionInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MessageMetadata {
     timestamp: i64,
-    headers: HashMap<String, String>,
+    headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone)] // Serialize and Deserialize defined manually
@@ -32,7 +32,7 @@ pub struct Message {
     pub partition: usize,
     pub offset: usize,
     pub payload: Vec<u8>,
-    pub metadata: MessageMetadata,
+    pub metadata: Option<MessageMetadata>,
 }
 
 // Custom serializer implementation to handle base64 encoding automatically
@@ -69,7 +69,7 @@ impl<'de> Deserialize<'de> for Message {
             partition: usize,
             offset: usize,
             payload: String,
-            metadata: MessageMetadata,
+            metadata: Option<MessageMetadata>,
         }
 
         let raw = RawMessage::deserialize(deserializer)?;
@@ -215,7 +215,7 @@ mod tests {
 
         let message: Message = serde_json::from_str(raw).unwrap();
         assert_eq!(message.offset, 1318687);
-        assert_eq!(message.metadata.timestamp, 1744760398);
+        assert_eq!(message.metadata.unwrap().timestamp, 1744760398);
     }
 
     #[tokio::test]

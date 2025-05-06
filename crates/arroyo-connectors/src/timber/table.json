@@ -1,16 +1,16 @@
 {
     "type": "object",
-    "title": "FlumeTable",
+    "title": "TimberTable",
     "properties": {
         "endpoint": {
             "title": "Endpoint",
             "type": "string",
-            "description": "The Flume endpoint to connect to; leave blank to use default"
+            "description": "The Timber endpoint to connect to; leave blank to use default"
         },
         "topic": {
             "title": "Topic",
             "type": "string",
-            "description": "The Flume topic to use for this table"
+            "description": "The Timber topic to use for this table"
         },
         "type": {
             "type": "object",

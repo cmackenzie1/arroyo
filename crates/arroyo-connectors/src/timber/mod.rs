@@ -1,4 +1,4 @@
-use crate::flume::api::{ApiClient, TopicInfo};
+use crate::timber::api::{ApiClient, TopicInfo};
 use crate::EmptyConfig;
 use anyhow::{anyhow, bail};
 use arroyo_operator::connector::{Connection, Connector};
@@ -27,24 +27,24 @@ mod api;
 const TABLE_SCHEMA: &str = include_str!("./table.json");
 const ICON: &str = include_str!("../fluvio/fluvio.svg");
 
-import_types!(schema = "src/flume/table.json");
+import_types!(schema = "src/timber/table.json");
 
-pub struct FlumeConnector {}
+pub struct TimberConnector {}
 
-impl Connector for FlumeConnector {
+impl Connector for TimberConnector {
     type ProfileT = EmptyConfig;
     type TableT = FlumeTable;
 
     fn name(&self) -> &'static str {
-        "flume"
+        "timber"
     }
 
     fn metadata(&self) -> arroyo_rpc::api_types::connections::Connector {
         arroyo_rpc::api_types::connections::Connector {
-            id: "flume".to_string(),
+            id: "timber".to_string(),
             name: "Flume".to_string(),
             icon: ICON.to_string(),
-            description: "Read and write from a Flume endpoint".to_string(),
+            description: "Read and write from a Timber endpoint".to_string(),
             enabled: true,
             source: true,
             sink: false,
@@ -114,11 +114,11 @@ impl Connector for FlumeConnector {
             }
             "sink" => TableType::Sink {},
             _ => {
-                bail!("type must be one of 'source' or 'sink");
+                bail!("type must be one of 'source' or 'sink'");
             }
         };
 
-        let table = FlumeTable {
+        let table = TimberTable {
             endpoint,
             topic,
             type_: table_type,
@@ -138,20 +138,22 @@ impl Connector for FlumeConnector {
         let (typ, desc) = match table.type_ {
             TableType::Source { .. } => (
                 ConnectionType::Source,
-                format!("FlumeSource<{}>", table.topic),
+                format!("TimberSource<{}>", table.topic),
             ),
-            TableType::Sink { .. } => (ConnectionType::Sink, format!("FlumeSink<{}>", table.topic)),
+            TableType::Sink { .. } => {
+                (ConnectionType::Sink, format!("TimberSink<{}>", table.topic))
+            }
         };
 
         let schema = schema
             .map(|s| s.to_owned())
-            .ok_or_else(|| anyhow!("no schema defined for Flume connection"))?;
+            .ok_or_else(|| anyhow!("no schema defined for Timber connection"))?;
 
         let format = schema
             .format
             .as_ref()
             .map(|t| t.to_owned())
-            .ok_or_else(|| anyhow!("'format' must be set for Flume connection"))?;
+            .ok_or_else(|| anyhow!("'format' must be set for Timber connection"))?;
 
         let config = OperatorConfig {
             connection: serde_json::to_value(config).unwrap(),
@@ -182,7 +184,7 @@ impl Connector for FlumeConnector {
     ) -> anyhow::Result<ConstructedOperator> {
         match table.type_ {
             TableType::Source { offset } => {
-                Ok(ConstructedOperator::from_source(Box::new(FlumeFunc {
+                Ok(ConstructedOperator::from_source(Box::new(TimberFunc {
                     topic: table.topic,
                     api_client: ApiClient::new(table.endpoint.unwrap(), reqwest::Client::default()),
                 })))
@@ -192,21 +194,21 @@ impl Connector for FlumeConnector {
     }
 }
 
-pub struct FlumeFunc {
+pub struct TimberFunc {
     topic: String,
     api_client: ApiClient,
 }
 
-impl FlumeFunc {
+impl TimberFunc {
     pub fn new(topic: String, api_client: ApiClient) -> Self {
         Self { topic, api_client }
     }
 }
 
 #[async_trait]
-impl SourceOperator for FlumeFunc {
+impl SourceOperator for TimberFunc {
     fn name(&self) -> String {
-        format!("flume-{}", self.topic)
+        format!("timber-{}", self.topic)
     }
 
     async fn run(
@@ -256,7 +258,7 @@ impl SourceOperator for FlumeFunc {
                             ));
                         },
                         Err(e) => {
-                            error!("error consuming flume message: {}", e);
+                            error!("error consuming timber message: {}", e);
                         },
                     }
                 },
@@ -268,7 +270,7 @@ impl SourceOperator for FlumeFunc {
                 control_message = ctx.control_rx.recv() => {
                     match control_message {
                         Some(ControlMessage::Stop { mode }) => {
-                            info!("Stopping flume source: {:?}", mode);
+                            info!("Stopping timber source: {:?}", mode);
 
                             return match mode {
                                 StopMode::Graceful => {
