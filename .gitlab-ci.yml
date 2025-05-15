@@ -1,0 +1,10 @@
+include:
+  - component: $CI_SERVER_FQDN/cloudflare/ci/docker-image/build-image@~latest
+    inputs:
+      runOnMR: true
+      runner: vm-linux-x86-4cpu-8gb # default is 2cpu-4gb
+
+  - component: $CI_SERVER_FQDN/cloudflare/ci/docker-image/build-image@~latest
+    inputs:
+      runOnMR: true
+      runner: vm-linux-x86-4cpu-8gb
